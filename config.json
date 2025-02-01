@@ -1,0 +1,17 @@
+{
+    "global": {
+        "highlight": "nord"
+    },
+    "index": {
+        "page": "template.js",
+        "content": "index.md",
+        "data": {"title": "Welcome to Rush"},
+        "style": "proto.css"
+    },
+    "about/index": {
+        "page": "template.js",
+        "content": "about.md",
+        "data": {"title": "About Rush"},
+        "style": "proto.css"
+    }
+}
