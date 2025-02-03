@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Rush</title>
+    <link rel="stylesheet" href="style/proto.css"/>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">
+                <img alt="Rush" src="assets/1F3CE.svg" height=70 />
+            </a>
+            <ul>
+                <li><a href="/about">About</a></li>
+            </ul>
+        </nav>
+        
+
+<h1>Welcome to Rush</h1>
+
+<h1>Welcome to Rush</h1>
+
+    </header>
+    <main>
+        <h1>Rush</h1>
+<p>Rush is a static site generator</p>
+<p>Different from other SSG, Rush use javascript as template, but for some one who likes HTML template, Rush also support it</p>
+<h2>Get started</h2>
+<p>First, the you need to install dependencies, which is <code>marked.js</code>, use <code>npm install marked</code> to install it</p>
+<p>To create a page, add a js file in the <code>/page</code> directory, it should be a function that takes a data(js object) as input and output a string represent html. After that, add a md file in the <code>/content</code> directory, it represent the content of a page.</p>
+<p>Here is a minimal example of how the js file could look like:</p>
+<pre><code class="language-Javascript">d =&gt; `&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;${d.title}&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    ${d.content}
+&lt;/body&gt;
+&lt;/html&gt;`
+</code></pre>
+<p>After that, suppose your js file is <code>template.js</code> and content file(markdown) is <code>content.md</code>, and the page should be an index page(the output html is &quot;index.html&quot;), then you should add the following to <code>config.json</code>:</p>
+<pre><code class="language-json">{
+    &quot;index&quot;: {
+        &quot;page&quot;: &quot;template.js&quot;,
+        &quot;content&quot;: &quot;content.md&quot;
+    }
+}
+</code></pre>
+<p>The given page will have a title as <code>content</code>, but probably you want another name, then you should add a <strong>custom data object</strong>:</p>
+<pre><code class="language-json">{
+    &quot;index&quot;: {
+        &quot;page&quot;: &quot;template.js&quot;,
+        &quot;content&quot;: &quot;content.md&quot;,
+        &quot;data&quot;: {&quot;title&quot;: &quot;Welcome to Rush&quot;}
+    }
+}
+</code></pre>
+<h2>HTML template in Rush</h2>
+<p>Most of web developers know JS, so Rush takes advantage of that, and let HTML template include JS, here is an example:</p>
+<pre><code class="language-HTML">&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;{{d.title}}&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    {{d.content}}
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>Everything in double curly braces is considered as a JS script, with a <strong>data object</strong> <code>d</code> in the environment</p>
+<p>But it is still quite JS-ish, so the general recommendation is to use JS-as-template</p>
+<h2>Multiple pages</h2>
+<p>Because a content or a template can be used multiple times, Rush use neither of these as indicator of the generated file structure</p>
+<p>The only indicator of that is the page name. For example, use <code>posts/index</code> to create an index.html inside the posts directory</p>
+<h2>Styles, Script and Static assets</h2>
+<p>To use CSS, JS and static assets like logos, put them in specifc folders:</p>
+<ul>
+<li><p>CSS go into the <code>style</code> folder, and it&#39;ll be in <code>gen/style</code> after generation</p>
+</li>
+<li><p>JS go into the <code>scripts</code> folder, and it&#39;ll be in <code>gen/scripts</code> after generation</p>
+</li>
+<li><p>Static assets go into <code>static</code> folder, and it&#39;ll be in <code>ge/assets</code> after generation</p>
+</li>
+</ul>
+<p>The file structure in these folder will be mimiced during generation</p>
+<p>To maximize reuseability of template, the general recommendation is to use <code>d.toGlobal</code> to link to these files, for example, here is a example of how you may do that:</p>
+<pre><code class="language-javascript">d =&gt; `&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;${d.title}&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;${d.toGlobal}style/proto.css&quot;/&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    ${d.content}
+&lt;/body&gt;
+&lt;/html&gt;`
+</code></pre>
+<p>Script and static assets are the same</p>
+<p>If you are sure the template will only be put in specific place, then it&#39;s also OK not to use it</p>
+<h2>Global</h2>
+<p>use <code>global</code> in config.json to do global configuration,now only <code>highlight</code> is supported</p>
+<h2>Code highlight</h2>
+<p>use <code>highlight</code> to specify the theme of highlight, if there&#39;s no highlight tag in global and in current page, code highlight will not open</p>
+
+    </main>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script></body>
+</html>

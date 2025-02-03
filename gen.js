@@ -10,7 +10,6 @@ const WriteFile = (dir, content) => {
     fs.mkdirSync(pathName, {recursive: true}, (err) => {})
     fs.writeFileSync(dir, content, 'utf8', (err) => {})
 }
-
 const traverse = (dir, callBack) => {
     files = fs.readdirSync(dir)
 
@@ -25,10 +24,14 @@ const traverse = (dir, callBack) => {
         }
     })
 }
+const processTemplate = (templ, data) => {
+    const genFunc = eval(templ)
+    html = genFunc(data)
+    return html
+}
 
 /* Following code from:
 https://stackoverflow.com/questions/8496212/node-js-fs-unlink-function-causes-eperm-error */
-
 var deleteFolderRecursive = function(path) {
     if( fs.existsSync(path) ) {
         fs.readdirSync(path).forEach(function(file) {
@@ -42,7 +45,6 @@ var deleteFolderRecursive = function(path) {
         fs.rmdirSync(path);
     }
 };
-
 deleteFolderRecursive('gen')
 
 fs.mkdirSync('gen', (err) => {})
@@ -51,24 +53,31 @@ fs.mkdirSync('gen/assets', (err) => {})
 fs.mkdirSync('gen/scripts', (err) => {})
 
 data_ = fs.readFileSync('config.json', 'utf-8')
-
 config = JSON.parse(data_)
+globalData = {}
 
 traverse('./style', (filePath) => {
-    console.log(filePath)
     css = fs.readFileSync(filePath, (err) => {})
     fs.writeFileSync(`gen/style/${filePath.slice('style\\'.length)}`, css, (err) => {})
 })
 traverse('./static', (filePath) => {
-    console.log(filePath)
-    css = fs.readFileSync(filePath, (err) => {})
-    fs.writeFileSync(`gen/assets/${filePath.slice('static\\'.length)}`, css, (err) => {})
+    assets = fs.readFileSync(filePath, (err) => {})
+    fs.writeFileSync(`gen/assets/${filePath.slice('static\\'.length)}`, assets, (err) => {})
 })
 traverse('./scripts', (filePath) => {
-    console.log(filePath)
-    css = fs.readFileSync(filePath, (err) => {})
-    fs.writeFileSync(`gen/scripts/${filePath.slice('script\\'.length)}`, css, (err) => {})
+    script = fs.readFileSync(filePath, (err) => {})
+    fs.writeFileSync(`gen/scripts/${filePath.slice('script\\'.length)}`, script, (err) => {})
 })
+traverse('./components', (filePath) => {
+    js = fs.readFileSync(filePath, 'utf-8', (err) => {})
+    componentName = filePath.slice('components\\'.length).split('.').slice(0, -1).join('.')
+    if (componentName != "config" && componentName) {
+        globalData[componentName] = js
+    }
+})
+compOrders = Object.keys(globalData)
+compOrders = fs.readFileSync('components/config', 'utf-8', (err) => {}).split(/\n|\n\r|\r/).filter(item => item.length > 0)
+console.log(compOrders)
 
 allCSS = {}
 for (key in config) { // Init Style
@@ -83,15 +92,14 @@ for (key in config) { // Init Style
 
 highlight = false
 defaultStyle = ""
-
-if ('global' in config) {
+if ('global' in config) { // Global Highlight setting
     if ('highlight' in config['global']) {
         highlight = true
         defaultStyle = config['global']['highlight']
     }
 }
 
-for (key in config) {
+for (key in config) { // Generating Pages
     if (key == 'global') continue;
     fileConfig = config[key]
     page = fs.readFileSync(`page/${fileConfig['page']}`, 'utf-8')
@@ -110,6 +118,19 @@ for (key in config) {
             ...fileConfig['data']
         }
     }
+    globalData_ = globalData // Copy Global Data to process
+    console.log(globalData_)
+    for (prop of compOrders) {
+        comp = globalData_[prop]
+        console.log(comp)
+        genHTML = processTemplate(comp, data)
+        console.log(genHTML)
+        data[prop] = genHTML // This makes nesting components available
+    }
+    data = { // Load globalData_(components) into data
+        ...globalData_,
+        ...data
+    }
     hlight = ('style' in fileConfig) || highlight
     hstyle = defaultStyle
     if ('highlight' in fileConfig) {
@@ -117,14 +138,9 @@ for (key in config) {
     }
     addCode = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${hstyle}.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-<!-- and it's easy to individually load additional languages -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-
 <script>hljs.highlightAll();</script>`
     if (fileConfig['page'].endsWith('js')){
-        const genFunc = eval(page)
-        html = genFunc(data)
+        html = processTemplate(page, data)
         endPoint = html.lastIndexOf('</body>')
         if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
         WriteFile(`gen/${key}.html`, html)

@@ -116,3 +116,25 @@ use `global` in config.json to do global configuration,now only `highlight` is s
 ## Code highlight
 
 use `highlight` to specify the theme of highlight, if there's no highlight tag in global and in current page, code highlight will not open
+
+## Component
+
+Because sometimes you don't want to write the samething again and again, Rush has the component mechanic to prevent that
+
+There's one way to register a component:
+
+1. By putting Rush template (JS only) in `/components`
+
+Also, a `config` file(no extension) is needed, it should contain and only contain a list of components name(a component's name is it's file name without the extension name), which is the **render order**, a component can only use component's that's before it in render order, and a page, of course, can use all of them
+
+Using a component is very simple, in Js write:
+
+```javascript
+${d.component-name}
+```
+
+and in HTML:
+
+```HTML
+{{d.component-name}}
+```
