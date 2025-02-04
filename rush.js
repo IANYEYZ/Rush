@@ -82,7 +82,6 @@ if (bk == "gen" || bk != "new") {
     })
     compOrders = Object.keys(globalData)
     compOrders = fs.readFileSync('components/config', 'utf-8', (err) => {}).split(/\n|\n\r|\r/).filter(item => item.length > 0)
-    console.log(compOrders)
 
     allCSS = {}
     for (key in config) { // Init Style
@@ -123,14 +122,22 @@ if (bk == "gen" || bk != "new") {
                 ...fileConfig['data']
             }
         }
+        if ('styles' in fileConfig) {
+            data.style = ""
+            for (i of fileConfig['styles']) {
+                data.style = /* html */`<link rel="stylesheet" href="${res + `style/` + i}">`
+            }
+        }
+        if ('scripts' in fileConfig) {
+            data.script = ""
+            for (i of fileConfig['scripts']) {
+                data.script = `<script src="${res + `scripts/` + i}" />`
+            }
+        }
         globalData_ = globalData // Copy Global Data to process
-        console.log(globalData_)
         for (prop of compOrders) {
             comp = globalData_[prop]
-            console.log(comp)
-            genHTML = processTemplate(comp, data)
-            console.log(genHTML)
-            data[prop] = genHTML // This makes nesting components available
+            data[prop] = eval(comp) // More flexible
         }
         data = { // Load globalData_(components) into data
             ...globalData_,

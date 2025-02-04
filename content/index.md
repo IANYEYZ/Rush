@@ -115,6 +115,22 @@ Script and static assets are the same
 
 If you are sure the template will only be put in specific place, then it's also OK not to use it
 
+But it's sometime very tedious to write all of these, so rush provide a simpler way to do it for style and script: style data and script data, to use these, first need to change config.json, here is an example:
+
+```json
+{
+    "index": {
+        "page": "template.js",
+        "content": "content.md",
+        "data": {"title": "Welcome to Rush"},
+        "style": ["style.css"],
+        "script": ["script.js"]
+    }
+}
+```
+
+Then, `d.script` and `d.style` can be written in template to automatically load all scripts and styles
+
 ## Global
 
 use `global` in config.json to do global configuration,now only `highlight` is supported, see `Code highlight` part for more detail
@@ -136,15 +152,19 @@ Also, a `config` file(no extension) is needed, it should contain and only contai
 Using a component is very simple, in Js write:
 
 ```javascript
-${d.component-name}
+${d.componentName(d)}
 ```
 
 and in HTML:
 
 ```HTML
-{{d.component-name}}
+{{d.componentName(d)}}
 ```
+
+The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components
 
 ## Notes on example pages
 
 `proto.css` is actually `MVP.css`
+
+`index.md` is the same as `readme.md`
