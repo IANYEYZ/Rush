@@ -8,7 +8,7 @@ Different from other SSG, Rush use javascript as template plus some support for 
 
 First, you need to install dependencies, which is `marked.js`, use `npm install marked` to install it
 
-Then, you need to create directories for rush so rush can work with it, use `rush new` if you downlod the exe file or `node rush.js new` to create a new set of directories (If you fork/clone the repository, the directories are right there with example pages)
+Then, you need to create directories for rush so rush can work with it, use `node rush.js new` to create a new set of directories (If you fork/clone the repository, the directories are right there with example pages)
 
 To create a page, add a js file in the `/page` directory, it should be a function that takes a data(js object) as input and output a string representing html. After that, add a markdown file in the `/content` directory, it represent the content of the page.
 
@@ -80,7 +80,7 @@ Note that the d you can use in HTML template is the same as what will be passed 
 
 Because a content or a template can be used multiple times, Rush uses neither of these as indicator of the generated file structure
 
-The only indicator of that is the page name. For example, use `posts/index` to create an index.html inside the posts directory, that's also how the front-end routing works
+The only indicator of that is the page name in `config.json`. For example, use `posts/index` to create an index.html inside the posts directory, that's also how the front-end routing works
 
 ## Styles, Script and Static assets
 
@@ -133,21 +133,17 @@ Then, `d.script` and `d.style` can be written in template to automatically load 
 
 ## Global
 
-use `global` in config.json to do global configuration,now only `highlight` is supported, see `Code highlight` part for more detail
+use `global` in config.json to do global configuration, now only `highlight` is supported, see `Code highlight` part for more detail
 
 ## Code highlight
 
-use `highlight` to specify the theme of highlight, it uses `highlight.js`, so go to their page for more detail, if there's no highlight tag in global and in current page, code highlight for this page will not open
+use `highlight` to specify the theme of code highlighting, it uses `highlight.js`, so go to their page for more detail, if there's no highlight tag in global and in current page, code highlight for this page will not open
 
 ## Component
 
-Because sometimes you don't want to write the samething again and again, Rush has the component mechanic to prevent that
+Because sometimes you don't want to write the same thing again and again, Rush has the component mechanic to prevent that. By putting Rush template (JS as template only) in `/components` you can create a component
 
-There's one way to register a component:
-
-1. By putting Rush template (JS as template only) in `/components`
-
-Also, a `config` file(no extension) is needed, it should contain and only contain a list of components name(a component's name is it's file name without the extension name), which is the **render order**, a component can only use component's that's before it in render order, and a page, of course, can use all of them
+Also, a `config` file(no filename extension) is needed, it should contain and only contain a list of components name(a component's name is it's file name without the extension name), which is the **render order**, a component can only use component's that's before it in render order, and a page, of course, can use all of them
 
 Using a component is very simple, in Js write:
 
@@ -161,7 +157,11 @@ and in HTML:
 {{d.componentName(d)}}
 ```
 
-The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components
+The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components, for example, when using a component for blog article cards, you can do something like this:
+
+```javascript
+${d.card({"title": "blog title"})}
+```
 
 ## Notes on example pages
 
