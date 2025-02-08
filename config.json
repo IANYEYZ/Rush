@@ -5,7 +5,6 @@
     "index": {
         "page": "template.js",
         "content": "index.md",
-        "data": {"title": "Welcome to Rush"},
         "style": "proto.css"
     },
     "about/index": {

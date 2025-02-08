@@ -16,20 +16,19 @@
                 <li><a href="/about">About</a></li>
             </ul>
         </nav>
-        
-
-<h1>Welcome to Rush</h1>
-
-<h1>Welcome to Rush</h1>
-
+        d => `
+${d.navbar}
+<h1>${d.title}</h1>
+`
     </header>
     <main>
         <h1>Rush</h1>
 <p>Rush is a static site generator</p>
-<p>Different from other SSG, Rush use javascript as template, but for some one who likes HTML template, Rush also support it</p>
+<p>Different from other SSG, Rush use javascript as template plus some support for HTML template</p>
 <h2>Get started</h2>
-<p>First, the you need to install dependencies, which is <code>marked.js</code>, use <code>npm install marked</code> to install it</p>
-<p>To create a page, add a js file in the <code>/page</code> directory, it should be a function that takes a data(js object) as input and output a string represent html. After that, add a md file in the <code>/content</code> directory, it represent the content of a page.</p>
+<p>First, you need to install dependencies, which is <code>marked.js</code>, use <code>npm install marked</code> to install it</p>
+<p>Then, you need to create directories for rush so rush can work with it, use <code>rush new</code> if you downlod the exe file or <code>node rush.js new</code> to create a new set of directories (If you fork/clone the repository, the directories are right there with example pages)</p>
+<p>To create a page, add a js file in the <code>/page</code> directory, it should be a function that takes a data(js object) as input and output a string representing html. After that, add a markdown file in the <code>/content</code> directory, it represent the content of the page.</p>
 <p>Here is a minimal example of how the js file could look like:</p>
 <pre><code class="language-Javascript">d =&gt; `&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
@@ -43,6 +42,7 @@
 &lt;/body&gt;
 &lt;/html&gt;`
 </code></pre>
+<p>In the process of generating, a data object will be feed to the JS template, which includes <code>title</code> and <code>content</code> by default, and <strong>custom data object</strong> can join in</p>
 <p>After that, suppose your js file is <code>template.js</code> and content file(markdown) is <code>content.md</code>, and the page should be an index page(the output html is &quot;index.html&quot;), then you should add the following to <code>config.json</code>:</p>
 <pre><code class="language-json">{
     &quot;index&quot;: {
@@ -61,6 +61,7 @@
 }
 </code></pre>
 <h2>HTML template in Rush</h2>
+<p>Rush recommends you to use JS as template, but if you really want HTML, Rush support that</p>
 <p>Most of web developers know JS, so Rush takes advantage of that, and let HTML template include JS, here is an example:</p>
 <pre><code class="language-HTML">&lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -74,10 +75,10 @@
 &lt;/html&gt;
 </code></pre>
 <p>Everything in double curly braces is considered as a JS script, with a <strong>data object</strong> <code>d</code> in the environment</p>
-<p>But it is still quite JS-ish, so the general recommendation is to use JS-as-template</p>
+<p>Note that the d you can use in HTML template is the same as what will be passed into the JS template, so generally both of these should be able to create the same page</p>
 <h2>Multiple pages</h2>
-<p>Because a content or a template can be used multiple times, Rush use neither of these as indicator of the generated file structure</p>
-<p>The only indicator of that is the page name. For example, use <code>posts/index</code> to create an index.html inside the posts directory</p>
+<p>Because a content or a template can be used multiple times, Rush uses neither of these as indicator of the generated file structure</p>
+<p>The only indicator of that is the page name. For example, use <code>posts/index</code> to create an index.html inside the posts directory, that&#39;s also how the front-end routing works</p>
 <h2>Styles, Script and Static assets</h2>
 <p>To use CSS, JS and static assets like logos, put them in specifc folders:</p>
 <ul>
@@ -85,7 +86,7 @@
 </li>
 <li><p>JS go into the <code>scripts</code> folder, and it&#39;ll be in <code>gen/scripts</code> after generation</p>
 </li>
-<li><p>Static assets go into <code>static</code> folder, and it&#39;ll be in <code>ge/assets</code> after generation</p>
+<li><p>Static assets go into <code>static</code> folder, and it&#39;ll be in <code>gen/assets</code> after generation</p>
 </li>
 </ul>
 <p>The file structure in these folder will be mimiced during generation</p>
@@ -105,13 +106,42 @@
 </code></pre>
 <p>Script and static assets are the same</p>
 <p>If you are sure the template will only be put in specific place, then it&#39;s also OK not to use it</p>
+<p>But it&#39;s sometime very tedious to write all of these, so rush provide a simpler way to do it for style and script: style data and script data, to use these, first need to change config.json, here is an example:</p>
+<pre><code class="language-json">{
+    &quot;index&quot;: {
+        &quot;page&quot;: &quot;template.js&quot;,
+        &quot;content&quot;: &quot;content.md&quot;,
+        &quot;data&quot;: {&quot;title&quot;: &quot;Welcome to Rush&quot;},
+        &quot;style&quot;: [&quot;style.css&quot;],
+        &quot;script&quot;: [&quot;script.js&quot;]
+    }
+}
+</code></pre>
+<p>Then, <code>d.script</code> and <code>d.style</code> can be written in template to automatically load all scripts and styles</p>
 <h2>Global</h2>
-<p>use <code>global</code> in config.json to do global configuration,now only <code>highlight</code> is supported</p>
+<p>use <code>global</code> in config.json to do global configuration,now only <code>highlight</code> is supported, see <code>Code highlight</code> part for more detail</p>
 <h2>Code highlight</h2>
-<p>use <code>highlight</code> to specify the theme of highlight, if there&#39;s no highlight tag in global and in current page, code highlight will not open</p>
+<p>use <code>highlight</code> to specify the theme of highlight, it uses <code>highlight.js</code>, so go to their page for more detail, if there&#39;s no highlight tag in global and in current page, code highlight for this page will not open</p>
+<h2>Component</h2>
+<p>Because sometimes you don&#39;t want to write the samething again and again, Rush has the component mechanic to prevent that</p>
+<p>There&#39;s one way to register a component:</p>
+<ol>
+<li>By putting Rush template (JS as template only) in <code>/components</code></li>
+</ol>
+<p>Also, a <code>config</code> file(no extension) is needed, it should contain and only contain a list of components name(a component&#39;s name is it&#39;s file name without the extension name), which is the <strong>render order</strong>, a component can only use component&#39;s that&#39;s before it in render order, and a page, of course, can use all of them</p>
+<p>Using a component is very simple, in Js write:</p>
+<pre><code class="language-javascript">${d.componentName(d)}
+</code></pre>
+<p>and in HTML:</p>
+<pre><code class="language-HTML">{{d.componentName(d)}}
+</code></pre>
+<p>The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components</p>
+<h2>Notes on example pages</h2>
+<p><code>proto.css</code> is actually <code>MVP.css</code></p>
+<p><code>index.md</code> is the same as <code>readme.md</code></p>
 
     </main>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script>hljs.highlightAll();</script></body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script></body>
 </html>

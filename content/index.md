@@ -1,3 +1,7 @@
+---
+title: Welcome to Rush
+---
+
 # Rush
 
 Rush is a static site generator

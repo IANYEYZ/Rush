@@ -1,6 +1,7 @@
 marked = require('marked')
 fs = require('fs')
 path = require('path')
+matter = require('gray-matter')
 
 args = process.argv
 
@@ -108,9 +109,13 @@ if (bk == "gen" || bk != "new") {
         fileConfig = config[key]
         page = fs.readFileSync(`page/${fileConfig['page']}`, 'utf-8')
         content = fs.readFileSync(`content/${fileConfig['content']}`, 'utf-8')
+        val = matter(content)
+        dataInMd = val["data"]
+        content_ = val["content"]
         data = {
             'title': fileConfig['content'].substring(0, fileConfig['content'].lastIndexOf('.')),
-            'content': marked.parse(content)
+            'content': marked.parse(content_),
+            ...dataInMd
         }
         dir = path.normalize(key).split(path.sep).filter(item => item.length > 0).length - 1
         res = "../"
