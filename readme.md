@@ -185,6 +185,21 @@ the loading priority for data object is the following(the one on the left most w
 
 original data < front matter < config.json data < style < script < page as component < global component
 
+## Plugin
+
+Rush only supports js-as-template, html template as template and markdown as content
+
+To support more template type and content, rush has a plugin system, each plugin should at least implement the following functions/have the following variable:
+
+1. `supportContentType`: an array of strings, each string is a filename extension supported for content in this plugin
+2. `parseContent`: a function takes content of string and filename extension of string, returns string represent html
+3. `supportTemplateType`: an array of strings, each string is a filename extension supported for template in this plugin
+4. `parseTemplate`: a function takes content of string, filename extension of string and a data of object, returns string represent html
+
+It's OK to leave them empty and implement other things, but if you want to do that, make sure leave `supportContentType` and `supportTemplateType` empty
+
+Unfortunately, component can't do anything with plugins
+
 ## Notes on example pages
 
 `proto.css` is actually `MVP.css`

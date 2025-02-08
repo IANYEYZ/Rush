@@ -1,4 +1,3 @@
-marked = require('marked')
 fs = require('fs')
 path = require('path')
 matter = require('gray-matter')
@@ -30,9 +29,45 @@ if (bk == "gen" || bk != "new") {
             }
         })
     }
-    const processTemplate = (templ, data) => {
-        const genFunc = eval(templ)
-        html = genFunc(data)
+    plugins = []
+    const loadPlugins = () => {
+        pluginList = fs.readFileSync("plugins/config", "utf-8").split('\n')
+        for (pluginName of pluginList) {
+            plugin = require(`./plugins/${pluginName}`)
+            plugins.push(plugin)
+        }
+    }
+    loadPlugins()
+    const processTemplate = (content, data, type) => {
+        for (i of plugins) {
+            if (i.plugin.supportTemplateType.includes(type)) {
+                res = i.plugin.parseTemplate(content, type, data)
+                if (res[1]) {
+                    content = res[0]
+                } else {
+                    return res[0]
+                }
+            }
+        }
+    }
+    const parseContent = (content, type) => {
+        for (i of plugins) {
+            if (i.plugin.supportContentType.includes(type)) {
+                res = i.plugin.parseContent(content, type)
+                if (res[1]) {
+                    content = res[0]
+                } else {
+                    return res[0]
+                }
+            }
+        }
+    }
+    const afterProcess = (html) => {
+        for (i of plugins) {
+            if ('afterProcess' in i.plugin) {
+                html = i.plugin.afterProcess(html)
+            }
+        }
         return html
     }
 
@@ -111,12 +146,13 @@ if (bk == "gen" || bk != "new") {
         fileConfig = config[key]
         page = fs.readFileSync(`page/${fileConfig['page']}`, 'utf-8')
         content = fs.readFileSync(`content/${fileConfig['content']}`, 'utf-8')
+        contentTyp = fileConfig['content'].substring(fileConfig['content'].lastIndexOf('.') + 1)
         val = matter(content)
         dataInMd = val["data"]
         content_ = val["content"]
         data = {
             'title': fileConfig['content'].substring(0, fileConfig['content'].lastIndexOf('.')),
-            'content': marked.parse(content_),
+            'content': parseContent(content_, contentTyp),
             ...dataInMd
         }
         dir = path.normalize(key).split(path.sep).filter(item => item.length > 0).length - 1
@@ -149,9 +185,9 @@ if (bk == "gen" || bk != "new") {
             data[prop] = eval(comp) // More flexible
         }
         data = { // Load globalData_(components) into data
-            ...data,
             ...pageComponent,
-            ...globalData_
+            ...globalData_,
+            ...data
         }
         hlight = ('style' in fileConfig) || highlight
         hstyle = defaultStyle
@@ -161,31 +197,66 @@ if (bk == "gen" || bk != "new") {
         addCode = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${hstyle}.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>`
-        if (fileConfig['page'].endsWith('js')){
-            html = processTemplate(page, data)
+        if (fileConfig['page'].endsWith('js')) {
+            html = processTemplate(page, data, 'js')
             endPoint = html.lastIndexOf('</body>')
             if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, html)
+            WriteFile(`gen/${key}.html`, afterProcess(html))
             key = key.replace("/", "-")
             pageComponent[key] = eval(page)
-        } else if (fileConfig['page'].endsWith('html')) {
-            const pattern = /\{\{(.*?)\}\}/g
-            html = page.replace(pattern, (match, cont) => {
-                d = data
-                val = eval(cont)
-                return val
-            })
+        } else {
+            templateTyp = fileConfig['page'].substring(fileConfig['page'].lastIndexOf('.') + 1)
+            html = processTemplate(page, data, templateTyp)
             if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, html)
+            WriteFile(`gen/${key}.html`, afterProcess(html))
         }
     }
 } else if (bk == "new") {
     fs.mkdirSync("components")
     fs.writeFileSync("components/config", "", (err) => {})
+    fs.mkdirSync("plugins")
+    fs.writeFileSync("plugins/config", "standard.js", (err) => {})
+    fs.writeFileSync("plugins/standard.js", `marked = require('marked')
+
+exports.plugin = {
+    supportContentType: ["md", "markdown"],
+    supportTemplateType: ["js", "html"],
+    parseContent(content, type) {
+        return [marked.parse(content), false]
+    },
+    parseTemplate(content, type, data) {
+        if (type == "js") {
+            const genFunc = eval(content)
+            html = genFunc(data)
+            return [html, false]
+        } else {
+            const pattern = /\{\{(.*?)\}\}/g
+            return [content.replace(pattern, (match, cont) => {
+                d = data
+                val = eval(cont)
+                return val
+            }), false]
+        }
+    },
+    afterProcess(html) {
+        return html
+    }
+};
+`, (err) => {})
     fs.mkdirSync("content")
     fs.mkdirSync("page")
     fs.mkdirSync("scripts")
     fs.mkdirSync("style")
     fs.mkdirSync("static")
     fs.writeFileSync("config.json", "", (err) => {})
+} else if (args[args.length - 2] == "plugin") {
+    fs.writeFileSync(`plugins/${bk}.js`, `exports.plugin = {
+    supportContentType: [],
+    supportTemplateType: [],
+    parseContent(content, type) {
+    },
+    parseTemplate(content, type, data) {
+    },
+    afterProcess(html) { return html }
+};`, (err) => {})
 }

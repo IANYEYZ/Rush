@@ -16,7 +16,7 @@ d => `<!DOCTYPE html>
                 <li><a href="/about">About</a></li>
             </ul>
         </nav>
-        ${d.headbar}
+        ${d.headbar(d)}
     </header>
     <main>
         ${d.content}

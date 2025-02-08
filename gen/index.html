@@ -16,10 +16,12 @@
                 <li><a href="/about">About</a></li>
             </ul>
         </nav>
-        d => `
-${d.navbar}
-<h1>${d.title}</h1>
-`
+        
+
+<h1>Welcome to Rush</h1>
+
+<h1>Welcome to Rush</h1>
+
     </header>
     <main>
         <h1>Rush</h1>
@@ -124,10 +126,7 @@ ${d.navbar}
 <p>use <code>highlight</code> to specify the theme of highlight, it uses <code>highlight.js</code>, so go to their page for more detail, if there&#39;s no highlight tag in global and in current page, code highlight for this page will not open</p>
 <h2>Component</h2>
 <p>Because sometimes you don&#39;t want to write the samething again and again, Rush has the component mechanic to prevent that</p>
-<p>There&#39;s one way to register a component:</p>
-<ol>
-<li>By putting Rush template (JS as template only) in <code>/components</code></li>
-</ol>
+<p>To register a component, put the Rush template (JS as template only) in <code>/components</code></p>
 <p>Also, a <code>config</code> file(no extension) is needed, it should contain and only contain a list of components name(a component&#39;s name is it&#39;s file name without the extension name), which is the <strong>render order</strong>, a component can only use component&#39;s that&#39;s before it in render order, and a page, of course, can use all of them</p>
 <p>Using a component is very simple, in Js write:</p>
 <pre><code class="language-javascript">${d.componentName(d)}
@@ -136,6 +135,22 @@ ${d.navbar}
 <pre><code class="language-HTML">{{d.componentName(d)}}
 </code></pre>
 <p>The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components</p>
+<p>Sometimes, a rendered page might want to be used in someplace else, which is also supported as page-as-component mechanic</p>
+<p>It&#39;s the same usage as the originall component, the name of the component is it&#39;s path(in config.json, something like <code>posts/index</code>), but with / changed to -</p>
+<h2>Custom Data Object</h2>
+<p>A custom data object is what will be merged with the data object, and then get passed to pages, it can and probably will be different for each page</p>
+<p>The data object, contains only <code>title</code> and <code>content</code>, where <code>title</code> is set to be the name of the markdown file, and the <code>content</code> is set to be the content of the markdown file</p>
+<p>There&#39;s also component data, which contains either global components or page as component(read the section above for more detail)</p>
+<p>script and style is also listed in data object,</p>
+<p>After all these, there&#39;re two ways to make a custom data object:</p>
+<ol>
+<li><p>by adding <code>data</code> inside <code>config.json</code>, as in <code>Get Started</code> section</p>
+</li>
+<li><p>by writing front matter inside markdown file</p>
+</li>
+</ol>
+<p>the loading priority for data object is the following(the one on the left most will be loaded first, then second to left, etc. The later ones overwritten earlier ones):</p>
+<p>original data &lt; front matter &lt; config.json data &lt; style &lt; script &lt; page as component &lt; global component</p>
 <h2>Notes on example pages</h2>
 <p><code>proto.css</code> is actually <code>MVP.css</code></p>
 <p><code>index.md</code> is the same as <code>readme.md</code></p>
