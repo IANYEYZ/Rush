@@ -104,6 +104,8 @@ if (bk == "gen" || bk != "new") {
         }
     }
 
+    pageComponent = {}
+
     for (key in config) { // Generating Pages
         if (key == 'global') continue;
         fileConfig = config[key]
@@ -139,14 +141,17 @@ if (bk == "gen" || bk != "new") {
                 data.script = `<script src="${res + `scripts/` + i}" />`
             }
         }
+        // Global components(what in the component folder) is always loaded for all pages
+        // Pages as component are loaded as the order in config.json suggests
         globalData_ = globalData // Copy Global Data to process
         for (prop of compOrders) {
             comp = globalData_[prop]
             data[prop] = eval(comp) // More flexible
         }
         data = { // Load globalData_(components) into data
-            ...globalData_,
-            ...data
+            ...data,
+            ...pageComponent,
+            ...globalData_
         }
         hlight = ('style' in fileConfig) || highlight
         hstyle = defaultStyle
@@ -161,6 +166,8 @@ if (bk == "gen" || bk != "new") {
             endPoint = html.lastIndexOf('</body>')
             if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
             WriteFile(`gen/${key}.html`, html)
+            key = key.replace("/", "-")
+            pageComponent[key] = eval(page)
         } else if (fileConfig['page'].endsWith('html')) {
             const pattern = /\{\{(.*?)\}\}/g
             html = page.replace(pattern, (match, cont) => {

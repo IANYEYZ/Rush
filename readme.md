@@ -143,9 +143,7 @@ use `highlight` to specify the theme of highlight, it uses `highlight.js`, so go
 
 Because sometimes you don't want to write the samething again and again, Rush has the component mechanic to prevent that
 
-There's one way to register a component:
-
-1. By putting Rush template (JS as template only) in `/components`
+To register a component, put the Rush template (JS as template only) in `/components`
 
 Also, a `config` file(no extension) is needed, it should contain and only contain a list of components name(a component's name is it's file name without the extension name), which is the **render order**, a component can only use component's that's before it in render order, and a page, of course, can use all of them
 
@@ -162,6 +160,30 @@ and in HTML:
 ```
 
 The reason for this design is that you can actually pass through another object than d, which gives you more flexibility when using and making components
+
+Sometimes, a rendered page might want to be used in someplace else, which is also supported as page-as-component mechanic
+
+It's the same usage as the originall component, the name of the component is it's path(in config.json, something like `posts/index`), but with / changed to -
+
+## Custom Data Object
+
+A custom data object is what will be merged with the data object, and then get passed to pages, it can and probably will be different for each page
+
+The data object, contains only `title` and `content`, where `title` is set to be the name of the markdown file, and the `content` is set to be the content of the markdown file
+
+There's also component data, which contains either global components or page as component(read the section above for more detail)
+
+script and style is also listed in data object,
+
+After all these, there're two ways to make a custom data object:
+
+1. by adding `data` inside `config.json`, as in `Get Started` section
+
+2. by writing front matter inside markdown file
+
+the loading priority for data object is the following(the one on the left most will be loaded first, then second to left, etc. The later ones overwritten earlier ones):
+
+original data < front matter < config.json data < style < script < page as component < global component
 
 ## Notes on example pages
 
