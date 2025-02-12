@@ -7,6 +7,9 @@ args = process.argv
 bk = args[args.length - 1]
 
 if (bk == "gen" || bk != "new") {
+    /*
+    Utils
+    */
     const WriteFile = (dir, content) => {
         pathName = path.dirname(dir)
         if (fs.existsSync(dir)) {
@@ -29,6 +32,25 @@ if (bk == "gen" || bk != "new") {
             }
         })
     }
+    /* Following code from:
+    https://stackoverflow.com/questions/8496212/node-js-fs-unlink-function-causes-eperm-error */
+    var deleteFolderRecursive = function(path) {
+        if( fs.existsSync(path) ) {
+            fs.readdirSync(path).forEach(function(file) {
+                var curPath = path + "/" + file;
+                if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                    deleteFolderRecursive(curPath);
+                } else { // delete file
+                    fs.unlinkSync(curPath);
+                }
+            });
+            fs.rmdirSync(path);
+        }
+    };
+
+    /*
+    Plugins: load and run
+    */
     plugins = []
     const loadPlugins = () => {
         pluginList = fs.readFileSync("plugins/config", "utf-8").split('\n')
@@ -71,32 +93,20 @@ if (bk == "gen" || bk != "new") {
         return html
     }
 
-    /* Following code from:
-    https://stackoverflow.com/questions/8496212/node-js-fs-unlink-function-causes-eperm-error */
-    var deleteFolderRecursive = function(path) {
-        if( fs.existsSync(path) ) {
-            fs.readdirSync(path).forEach(function(file) {
-                var curPath = path + "/" + file;
-                if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                    deleteFolderRecursive(curPath);
-                } else { // delete file
-                    fs.unlinkSync(curPath);
-                }
-            });
-            fs.rmdirSync(path);
-        }
-    };
+    /*
+    Clean up and recreate the folder for generated site
+    */
     deleteFolderRecursive('gen')
-
     fs.mkdirSync('gen', (err) => {})
     fs.mkdirSync('gen/style', (err) => {})
     fs.mkdirSync('gen/assets', (err) => {})
     fs.mkdirSync('gen/scripts', (err) => {})
 
-    data_ = fs.readFileSync('config.json', 'utf-8')
-    config = JSON.parse(data_)
+    /*
+    copy the file from style, static and script
+    register the component
+    */
     globalData = {}
-
     traverse('./style', (filePath) => {
         css = fs.readFileSync(filePath, (err) => {})
         fs.writeFileSync(`gen/style/${filePath.slice('style\\'.length)}`, css, (err) => {})
@@ -116,20 +126,15 @@ if (bk == "gen" || bk != "new") {
             globalData[componentName] = js
         }
     })
-    compOrders = Object.keys(globalData)
     compOrders = fs.readFileSync('components/config', 'utf-8', (err) => {}).split(/\n|\n\r|\r/).filter(item => item.length > 0)
 
-    allCSS = {}
-    for (key in config) { // Init Style
-        if (!('style' in config[key])) continue;
-        if (config[key]['style'] in allCSS) {
-            continue
-        } else {
-            css = fs.readFileSync(`style/${config[key]['style']}`, (err) => {})
-            fs.writeFileSync(`gen/${config[key]['style']}`, css, (err) => {})
-        }
-    }
+    /*
+    Parse config.json
+    */
+    data_ = fs.readFileSync('config.json', 'utf-8')
+    config = JSON.parse(data_)
 
+    // load global highlight
     highlight = false
     defaultStyle = ""
     if ('global' in config) { // Global Highlight setting
@@ -139,13 +144,15 @@ if (bk == "gen" || bk != "new") {
         }
     }
 
+    /* generating */
     pageComponent = {}
-
     for (key in config) { // Generating Pages
         if (key == 'global') continue;
+
         fileConfig = config[key]
         page = fs.readFileSync(`page/${fileConfig['page']}`, 'utf-8')
         content = fs.readFileSync(`content/${fileConfig['content']}`, 'utf-8')
+
         contentTyp = fileConfig['content'].substring(fileConfig['content'].lastIndexOf('.') + 1)
         val = matter(content)
         dataInMd = val["data"]
@@ -155,10 +162,12 @@ if (bk == "gen" || bk != "new") {
             'content': parseContent(content_, contentTyp),
             ...dataInMd
         }
+
         dir = path.normalize(key).split(path.sep).filter(item => item.length > 0).length - 1
         res = "../"
         res = res.repeat(dir)
         data.toGlobal = res
+
         if ('data' in fileConfig) {
             data = {
                 ...data,
@@ -177,6 +186,7 @@ if (bk == "gen" || bk != "new") {
                 data.script = `<script src="${res + `scripts/` + i}" />`
             }
         }
+
         // Global components(what in the component folder) is always loaded for all pages
         // Pages as component are loaded as the order in config.json suggests
         globalData_ = globalData // Copy Global Data to process
@@ -189,6 +199,7 @@ if (bk == "gen" || bk != "new") {
             ...globalData_,
             ...data
         }
+
         hlight = ('style' in fileConfig) || highlight
         hstyle = defaultStyle
         if ('highlight' in fileConfig) {
@@ -197,6 +208,7 @@ if (bk == "gen" || bk != "new") {
         addCode = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${hstyle}.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>`
+    
         if (fileConfig['page'].endsWith('js')) {
             html = processTemplate(page, data, 'js')
             endPoint = html.lastIndexOf('</body>')

@@ -4,7 +4,7 @@ d => `<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${d.title}</title>
-    <link rel="stylesheet" href="${d.toGlobal}style/proto.css"/>
+    ${d.style}
 </head>
 <body>
     <header>
