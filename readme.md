@@ -4,6 +4,18 @@ Rush is a static site generator
 
 Different from other SSG, Rush use javascript as template plus some support for HTML template
 
+## Todo
+
+- [] Rewrite Component system so that it supports plugin
+
+- [] Let plugin support read from config.json
+
+- [] Add [mewlix](https://github.com/kbmackenzie/mewlix) support
+
+- [] Add JSX support
+
+- [] Let plugin know about the path of the page
+
 ## Get started
 
 First, you need to install dependencies, which is `marked.js`, use `npm install marked` to install it
