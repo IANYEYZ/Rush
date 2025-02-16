@@ -38,10 +38,10 @@ if (bk == "gen" || bk != "new") {
         }
     }
     loadPlugins()
-    const processTemplate = (content, data, type, path) => {
+    const processTemplate = (content, data, type, path, config) => {
         for (i of plugins) {
             if (i.plugin.supportTemplateType.includes(type)) {
-                res = i.plugin.parseTemplate(content, type, data, path)
+                res = i.plugin.parseTemplate(content, type, data, path, config)
                 if (res[1]) {
                     content = res[0]
                 } else {
@@ -50,10 +50,10 @@ if (bk == "gen" || bk != "new") {
             }
         }
     }
-    const parseContent = (content, type) => {
+    const parseContent = (content, type, path, config) => {
         for (i of plugins) {
             if (i.plugin.supportContentType.includes(type)) {
-                res = i.plugin.parseContent(content, type)
+                res = i.plugin.parseContent(content, type, path, config)
                 if (res[1]) {
                     content = res[0]
                 } else {
@@ -62,10 +62,10 @@ if (bk == "gen" || bk != "new") {
             }
         }
     }
-    const afterProcess = (html) => {
+    const afterProcess = (html, path, config) => {
         for (i of plugins) {
             if ('afterProcess' in i.plugin) {
-                html = i.plugin.afterProcess(html)
+                html = i.plugin.afterProcess(html, path, config)
             }
         }
         return html
@@ -150,7 +150,7 @@ if (bk == "gen" || bk != "new") {
         content_ = val["content"]
         data = {
             'title': fileConfig['content'].substring(0, fileConfig['content'].lastIndexOf('.')),
-            'content': parseContent(content_, contentTyp),
+            'content': parseContent(content_, contentTyp, key, config),
             ...dataInMd
         }
         dir = path.normalize(key).split(path.sep).filter(item => item.length > 0).length - 1
@@ -197,7 +197,7 @@ if (bk == "gen" || bk != "new") {
         html = processTemplate(page, data, 'js', path)
         endPoint = html.lastIndexOf('</body>')
         if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-        WriteFile(`gen/${key}.html`, afterProcess(html))
+        WriteFile(`gen/${key}.html`, afterProcess(html, key, config))
     }
 } else if (bk == "new") {
     fs.mkdirSync("components")
@@ -209,10 +209,10 @@ if (bk == "gen" || bk != "new") {
 exports.plugin = {
     supportContentType: ["md", "markdown"],
     supportTemplateType: ["js", "html"],
-    parseContent(content, type) {
+    parseContent(content, type, path, config) {
         return [marked.parse(content), false]
     },
-    parseTemplate(content, type, data, path) {
+    parseTemplate(content, type, data, path, config) {
         if (type == "js") {
             const genFunc = eval(content)
             html = genFunc(data)
@@ -226,7 +226,7 @@ exports.plugin = {
             }), false]
         }
     },
-    afterProcess(html) {
+    afterProcess(html, path, config) {
         return html
     }
 };
