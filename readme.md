@@ -4,6 +4,18 @@ Rush is a static site generator
 
 Different from other SSG, Rush use javascript as template plus some support for HTML template
 
+## Todo
+
+- [] Rewrite Component system so that it supports plugin
+
+- [] Let plugin support read from config.json
+
+- [] Add [mewlix](https://github.com/kbmackenzie/mewlix) support
+
+- [] Add JSX support
+
+- [x] Let plugin know about the path of the page
+
 ## Get started
 
 First, you need to install dependencies, which is `marked.js`, use `npm install marked` to install it
@@ -163,10 +175,13 @@ The reason for this design is that you can actually pass through another object 
 ${d.card({"title": "blog title"})}
 ```
 
+<!--
 
 Sometimes, a rendered page might want to be used in someplace else, which is also supported as page-as-component mechanic
 
 It's the same usage as the originall component, the name of the component is it's path(in config.json, something like `posts/index`), but with / changed to -
+
+-->
 
 ## Custom Data Object
 

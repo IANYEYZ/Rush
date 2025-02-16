@@ -3,10 +3,10 @@ marked = require('marked')
 exports.plugin = {
     supportContentType: ["md", "markdown"],
     supportTemplateType: ["js", "html"],
-    parseContent(content, type) {
+    parseContent(content, type, path, config) {
         return [marked.parse(content), false]
     },
-    parseTemplate(content, type, data) {
+    parseTemplate(content, type, data, path, config) {
         if (type == "js") {
             const genFunc = eval(content)
             html = genFunc(data)
@@ -20,7 +20,7 @@ exports.plugin = {
             }), false]
         }
     },
-    afterProcess(html) {
+    afterProcess(html, path, config) {
         return html
     }
 };

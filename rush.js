@@ -60,10 +60,10 @@ if (bk == "gen" || bk != "new") {
         }
     }
     loadPlugins()
-    const processTemplate = (content, data, type) => {
+    const processTemplate = (content, data, type, path, config) => {
         for (i of plugins) {
             if (i.plugin.supportTemplateType.includes(type)) {
-                res = i.plugin.parseTemplate(content, type, data)
+                res = i.plugin.parseTemplate(content, type, data, path, config)
                 if (res[1]) {
                     content = res[0]
                 } else {
@@ -72,10 +72,10 @@ if (bk == "gen" || bk != "new") {
             }
         }
     }
-    const parseContent = (content, type) => {
+    const parseContent = (content, type, path, config) => {
         for (i of plugins) {
             if (i.plugin.supportContentType.includes(type)) {
-                res = i.plugin.parseContent(content, type)
+                res = i.plugin.parseContent(content, type, path, config)
                 if (res[1]) {
                     content = res[0]
                 } else {
@@ -84,10 +84,10 @@ if (bk == "gen" || bk != "new") {
             }
         }
     }
-    const afterProcess = (html) => {
+    const afterProcess = (html, path, config) => {
         for (i of plugins) {
             if ('afterProcess' in i.plugin) {
-                html = i.plugin.afterProcess(html)
+                html = i.plugin.afterProcess(html, path, config)
             }
         }
         return html
@@ -144,8 +144,6 @@ if (bk == "gen" || bk != "new") {
         }
     }
 
-    /* generating */
-    pageComponent = {}
     for (key in config) { // Generating Pages
         if (key == 'global') continue;
 
@@ -159,7 +157,7 @@ if (bk == "gen" || bk != "new") {
         content_ = val["content"]
         data = {
             'title': fileConfig['content'].substring(0, fileConfig['content'].lastIndexOf('.')),
-            'content': parseContent(content_, contentTyp),
+            'content': parseContent(content_, contentTyp, key, config),
             ...dataInMd
         }
 
@@ -195,7 +193,6 @@ if (bk == "gen" || bk != "new") {
             data[prop] = eval(comp) // More flexible
         }
         data = { // Load globalData_(components) into data
-            ...pageComponent,
             ...globalData_,
             ...data
         }
@@ -208,20 +205,10 @@ if (bk == "gen" || bk != "new") {
         addCode = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${hstyle}.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>`
-    
-        if (fileConfig['page'].endsWith('js')) {
-            html = processTemplate(page, data, 'js')
-            endPoint = html.lastIndexOf('</body>')
-            if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, afterProcess(html))
-            key = key.replace("/", "-")
-            pageComponent[key] = eval(page)
-        } else {
-            templateTyp = fileConfig['page'].substring(fileConfig['page'].lastIndexOf('.') + 1)
-            html = processTemplate(page, data, templateTyp)
-            if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, afterProcess(html))
-        }
+        html = processTemplate(page, data, 'js', path)
+        endPoint = html.lastIndexOf('</body>')
+        if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
+        WriteFile(`gen/${key}.html`, afterProcess(html, key, config))
     }
 } else if (bk == "new") {
     fs.mkdirSync("components")
@@ -233,10 +220,10 @@ if (bk == "gen" || bk != "new") {
 exports.plugin = {
     supportContentType: ["md", "markdown"],
     supportTemplateType: ["js", "html"],
-    parseContent(content, type) {
+    parseContent(content, type, path, config) {
         return [marked.parse(content), false]
     },
-    parseTemplate(content, type, data) {
+    parseTemplate(content, type, data, path, config) {
         if (type == "js") {
             const genFunc = eval(content)
             html = genFunc(data)
@@ -250,7 +237,7 @@ exports.plugin = {
             }), false]
         }
     },
-    afterProcess(html) {
+    afterProcess(html, path, config) {
         return html
     }
 };
@@ -267,7 +254,7 @@ exports.plugin = {
     supportTemplateType: [],
     parseContent(content, type) {
     },
-    parseTemplate(content, type, data) {
+    parseTemplate(content, type, data, path) {
     },
     afterProcess(html) { return html }
 };`, (err) => {})
