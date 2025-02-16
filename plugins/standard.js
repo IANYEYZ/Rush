@@ -6,7 +6,7 @@ exports.plugin = {
     parseContent(content, type) {
         return [marked.parse(content), false]
     },
-    parseTemplate(content, type, data) {
+    parseTemplate(content, type, data, path) {
         if (type == "js") {
             const genFunc = eval(content)
             html = genFunc(data)

@@ -38,10 +38,10 @@ if (bk == "gen" || bk != "new") {
         }
     }
     loadPlugins()
-    const processTemplate = (content, data, type) => {
+    const processTemplate = (content, data, type, path) => {
         for (i of plugins) {
             if (i.plugin.supportTemplateType.includes(type)) {
-                res = i.plugin.parseTemplate(content, type, data)
+                res = i.plugin.parseTemplate(content, type, data, path)
                 if (res[1]) {
                     content = res[0]
                 } else {
@@ -139,8 +139,6 @@ if (bk == "gen" || bk != "new") {
         }
     }
 
-    pageComponent = {}
-
     for (key in config) { // Generating Pages
         if (key == 'global') continue;
         fileConfig = config[key]
@@ -185,7 +183,6 @@ if (bk == "gen" || bk != "new") {
             data[prop] = eval(comp) // More flexible
         }
         data = { // Load globalData_(components) into data
-            ...pageComponent,
             ...globalData_,
             ...data
         }
@@ -197,19 +194,10 @@ if (bk == "gen" || bk != "new") {
         addCode = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${hstyle}.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>`
-        if (fileConfig['page'].endsWith('js')) {
-            html = processTemplate(page, data, 'js')
-            endPoint = html.lastIndexOf('</body>')
-            if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, afterProcess(html))
-            key = key.replace("/", "-")
-            pageComponent[key] = eval(page)
-        } else {
-            templateTyp = fileConfig['page'].substring(fileConfig['page'].lastIndexOf('.') + 1)
-            html = processTemplate(page, data, templateTyp)
-            if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
-            WriteFile(`gen/${key}.html`, afterProcess(html))
-        }
+        html = processTemplate(page, data, 'js', path)
+        endPoint = html.lastIndexOf('</body>')
+        if (hlight) html = html.slice(0, endPoint) + addCode + html.slice(endPoint)
+        WriteFile(`gen/${key}.html`, afterProcess(html))
     }
 } else if (bk == "new") {
     fs.mkdirSync("components")
