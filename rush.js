@@ -175,13 +175,13 @@ if (bk == "gen" || bk != "new") {
         if ('styles' in fileConfig) {
             data.style = ""
             for (i of fileConfig['styles']) {
-                data.style = /* html */`<link rel="stylesheet" href="${res + `style/` + i}">`
+                data.style += /* html */`<link rel="stylesheet" href="${res + `style/` + i}">\n`
             }
         }
         if ('scripts' in fileConfig) {
             data.script = ""
             for (i of fileConfig['scripts']) {
-                data.script = `<script src="${res + `scripts/` + i}" />`
+                data.script += `<script src="${res + `scripts/` + i}" />\n`
             }
         }
 

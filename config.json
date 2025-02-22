@@ -5,12 +5,12 @@
     "index": {
         "page": "template.js",
         "content": "index.md",
-        "styles": ["proto.css"]
+        "styles": ["proto.css", "alert.css"]
     },
     "about/index": {
         "page": "template.js",
         "content": "about.md",
         "data": {"title": "About Rush"},
-        "styles": ["proto.css"]
+        "styles": ["proto.css", "alert.css"]
     }
 }
