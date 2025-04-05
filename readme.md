@@ -6,13 +6,13 @@ Different from other SSG, Rush use javascript as template plus some support for 
 
 ## Todo
 
-- [] Rewrite Component system so that it supports plugin
+- [ ] Rewrite Component system so that it supports plugin
 
-- [] Let plugin support read from config.json
+- [ ] Let plugin support read from config.json
 
-- [] Add [mewlix](https://github.com/kbmackenzie/mewlix) support
+- [ ] Add [mewlix](https://github.com/kbmackenzie/mewlix) support
 
-- [] Add JSX support
+- [ ] Add JSX support
 
 - [x] Let plugin know about the path of the page
 
